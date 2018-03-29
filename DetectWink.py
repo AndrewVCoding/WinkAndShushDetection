@@ -176,7 +176,7 @@ def runonVideo(cascade1, cascade2, cascade3):
         else:
             confidence = confidence - 0.9
         if confidence < 0:
-            confidence = 0
+            confidence = 0.0
         if cv2.waitKey(30) >= 0:
             showlive = False
 
