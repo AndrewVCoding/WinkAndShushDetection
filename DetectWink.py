@@ -138,9 +138,6 @@ def run_on_folder(cascade1, cascade2, cascade3, folder):
             # First try one cascade for face detection
             lCnt = folderDetect(img, cascade2, cascade3)
             # If the first one didn't find a face, try the second cascade
-            if (lCnt == 0):
-                lCnt += folderDetect(img, cascade1, cascade3)
-            print(lCnt)
             totalCount += lCnt
             if windowName != None:
                 cv2.destroyWindow(windowName)
@@ -160,7 +157,7 @@ def runonVideo(cascade1, cascade2, cascade3):
     windowName = "Live Video"
     showlive = True
     # To make the detection less jumpy, smooth it out over time by keeping track of the content of the last few frames
-    confidence = 0
+    confidence = 0.0
     while (showlive):
         ret, frame = videocapture.read()
 
@@ -169,19 +166,15 @@ def runonVideo(cascade1, cascade2, cascade3):
             exit()
 
         # Use cascade2 to detect winking faces
-        lCnt = videoDetect(frame, cascade2, cascade3, confidence)
-        # If cascade2 didn't find a face, try cascade1. I put them in this order because I was finding more correct
-        # faces with cascade2 than with cascade 1, so putting them in this order reduces processing
-        # if lCnt == 0:
-        #     lCnt += videoDetect(frame, cascade1, cascade3, confidence)
-        confidence += 2 * lCnt
+        lCnt = videoDetect(frame, cascade1, cascade3, confidence)
+        confidence += lCnt
         cv2.imshow(windowName, frame)
         # Decrease the confidence level so that it doesn't get stuck at a high value
-        print(confidence, ':', lCnt)
+        # print(confidence, ':', lCnt)
         if confidence > 5:
-            confidence = confidence - 4
+            confidence = confidence - 4.0
         else:
-            confidence = confidence - 1
+            confidence = confidence - 0.9
         if confidence < 0:
             confidence = 0
         if cv2.waitKey(30) >= 0:
