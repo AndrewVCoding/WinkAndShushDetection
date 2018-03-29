@@ -38,7 +38,7 @@ def detect(frame, faceCascade, mouthsCascade, fingerCascade):
         mouths = detectFeature(frame, (x1, y1), mouthROI, mouthsCascade)
         fingers = detectFeature(frame, (x1, y1), mouthROI, fingerCascade)
 
-        if (len(mouths) == 0 and len(fingers) >= 1) or (len(mouths) == 1 and len(fingers) >= 1):
+        if len(mouths) == 0 or (len(mouths) >= 1 and len(fingers) >= 1):
             detected += 1
             cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
         else:
