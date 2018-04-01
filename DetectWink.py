@@ -136,7 +136,6 @@ def run_on_folder(cascade1, cascade2, cascade3, folder):
         if type(img) is np.ndarray:
             # First try one cascade for face detection
             lCnt = folderDetect(img, cascade2, cascade3)
-            # If the first one didn't find a face, try the second cascade
             totalCount += lCnt
             if windowName != None:
                 cv2.destroyWindow(windowName)

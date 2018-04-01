@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 import os
 from os import listdir
 from os.path import isfile, join
@@ -26,7 +27,7 @@ def detect(frame, faceCascade, mouthsCascade, fingerCascade):
     # gray_frame = cv2.medianBlur(gray_frame, 5)
 
     faces = faceCascade.detectMultiScale(
-        gray_frame, 1.15, 4, 0 | cv2.CASCADE_SCALE_IMAGE, (40, 40))
+        gray_frame, 1.15, 4, 0 | cv2.CASCADE_SCALE_IMAGE, (20, 20))
     detected = 0
     for (x, y, w, h) in faces:
         # ROI for feature
@@ -36,7 +37,16 @@ def detect(frame, faceCascade, mouthsCascade, fingerCascade):
         mouthROI = gray_frame[y1:y1 + h2, x1:x1 + w]
 
         mouths = detectFeature(frame, (x1, y1), mouthROI, mouthsCascade)
-        fingers = detectFeature(frame, (x1, y1), mouthROI, fingerCascade)
+
+        # Look for fingers in the mouth area
+        for (xx, yy, ww, hh) in mouths:
+            # ROI for feature
+            x2 = xx
+            h3 = int(hh / 2)
+            y2 = yy + h2
+            fingerROI = gray_frame[y2:y2 + h3, x2:x2 + ww]
+            fingerFrame = frame
+            fingers = detectFeature(fingerFrame, (x2, y2), fingerROI, fingerCascade)
 
         if len(mouths) == 0 or (len(mouths) >= 1 and len(fingers) >= 1):
             detected += 1
