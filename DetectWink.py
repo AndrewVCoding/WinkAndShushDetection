@@ -76,7 +76,7 @@ def folderDetect(frame, faceCascade, eyesCascade):
     for f in faces:
         x, y, w, h = f[0], f[1], f[2], f[3]
         # Only look at the upper portion of the face for eyes
-        faceROI = gray_frame[y:y + int(h / 1.75), x:x + w]
+        faceROI = gray_frame[y:y + int(h / 1.5), x:x + w]
 
         # Get features for detection
         # I want to detect the presence of the left and rights eyes seperately
@@ -119,7 +119,7 @@ def videoDetect(frame, faceCascade, eyesCascade, confidence):
     detected = 0
     for f in faces:
         x, y, w, h = f[0], f[1], f[2], f[3]
-        faceROI = gray_frame[y:y + h, x:x + w]
+        faceROI = gray_frame[y:y + int(h / 1.5), x:x + w]
 
         # Get features for detection
         # I want to detect the presence of the left and rights eyes seperately
