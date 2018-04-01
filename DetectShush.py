@@ -9,8 +9,42 @@ import sys
 
 # Used to detect features using the given cascade
 # Returns a tuple containing the rectangles around the features
-def detectFeature(frame, location, ROI, cascade):
-    features = cascade.detectMultiScale(ROI, 1.15, 3, 0, (20, 20))
+def detectMouth(frame, location, ROI, cascade):
+    scaleFactor = 1.5  # range is from 1 to ..
+    minNeighbors = 5  # range is from 0 to ..
+    flag = 0 # either 0 or 0|cv2.CASCADE_SCALE_IMAGE
+    minSize = (20, 20)  # range is from (0,0) to ..
+    features = cascade.detectMultiScale(
+        ROI,
+        scaleFactor,
+        minNeighbors,
+        flag,
+        minSize)
+    rectangles = []
+    for (mx, my, mw, mh) in features:
+        mx += location[0]
+        my += location[1]
+        scale = 1.0
+        mw = int(mw * scale)
+        mh = int(mh * scale)
+        cv2.rectangle(frame, (mx, my), (mx + mw, my + mh), (0, 0, 255), 2)
+        rectangles.append((mx, my, mw, mh))
+    return rectangles
+
+
+# Used to detect features using the given cascade
+# Returns a tuple containing the rectangles around the features
+def detectFinger(frame, location, ROI, cascade):
+    scaleFactor = 1.1  # range is from 1 to ..
+    minNeighbors = 20  # range is from 0 to ..
+    flag = 0 | cv2.CASCADE_SCALE_IMAGE  # either 0 or 0|cv2.CASCADE_SCALE_IMAGE
+    minSize = (30, 30)  # range is from (0,0) to ..
+    features = cascade.detectMultiScale(
+        ROI,
+        scaleFactor,
+        minNeighbors,
+        flag,
+        minSize)
     rectangles = []
     for (mx, my, mw, mh) in features:
         mx += location[0]
@@ -24,10 +58,18 @@ def detect(frame, faceCascade, mouthsCascade, fingerCascade):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # gray_frame = cv2.equalizeHist(gray_frame)
-    # gray_frame = cv2.medianBlur(gray_frame, 5)
+    gray_frame = cv2.medianBlur(gray_frame, 5)
 
+    scaleFactor = 1.15  # range is from 1 to ..
+    minNeighbors = 5  # range is from 0 to ..
+    flag = 0 | cv2.CASCADE_SCALE_IMAGE  # either 0 or 0|cv2.CASCADE_SCALE_IMAGE
+    minSize = (65, 65)  # range is from (0,0) to ..
     faces = faceCascade.detectMultiScale(
-        gray_frame, 1.15, 4, 0 | cv2.CASCADE_SCALE_IMAGE, (20, 20))
+        gray_frame,
+        scaleFactor,
+        minNeighbors,
+        flag,
+        minSize)
     detected = 0
     for (x, y, w, h) in faces:
         # ROI for feature
@@ -36,17 +78,18 @@ def detect(frame, faceCascade, mouthsCascade, fingerCascade):
         y1 = y + h2
         mouthROI = gray_frame[y1:y1 + h2, x1:x1 + w]
 
-        mouths = detectFeature(frame, (x1, y1), mouthROI, mouthsCascade)
+        mouths = detectMouth(frame, (x1, y1), mouthROI, mouthsCascade)
 
         # Look for fingers in the mouth area
         for (xx, yy, ww, hh) in mouths:
             # ROI for feature
             x2 = xx
-            h3 = int(hh / 2)
+            h3 = int(hh / 1.0)
+            w3 = int(ww * 2)
             y2 = yy + h2
-            fingerROI = gray_frame[y2:y2 + h3, x2:x2 + ww]
+            fingerROI = gray_frame[y2:y2 + h3, x2:x2 + w3]
             fingerFrame = frame
-            fingers = detectFeature(fingerFrame, (x2, y2), fingerROI, fingerCascade)
+            fingers = detectFinger(fingerFrame, (x2, y2), fingerROI, fingerCascade)
 
         if len(mouths) == 0 or (len(mouths) >= 1 and len(fingers) >= 1):
             detected += 1
