@@ -119,7 +119,7 @@ def run_on_folder(cascade1, cascade2, cascade3, folder):
     return totalCnt
 
 
-def runonVideo(face_cascade, eyes_cascade, fingerCascade):
+def runonVideo(face_cascade, mouth_cascade, fingerCascade):
     videocapture = cv2.VideoCapture(0)
     if not videocapture.isOpened():
         print("Can't open default video camera!")
@@ -133,7 +133,7 @@ def runonVideo(face_cascade, eyes_cascade, fingerCascade):
         if not ret:
             print("Can't capture frame")
             break
-        detect(frame, face_cascade, eyes_cascade, fingerCascade)
+        detect(frame, face_cascade, mouth_cascade, fingerCascade)
         cv2.imshow(windowName, frame)
         if cv2.waitKey(30) >= 0:
             showframe = False
