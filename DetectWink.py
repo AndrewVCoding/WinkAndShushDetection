@@ -6,15 +6,23 @@ import sys
 
 
 # Detect Feature
-def detectSingularFeature(frame, location, ROI, cascade, size):
+def detectSingularFeature(frame, location, ROI, cascade):
+    scaleFactor = 1.15  # range is from 1 to ..
+    minNeighbors = 4  # range is from 0 to ..
+    flag = 0 | cv2.CASCADE_SCALE_IMAGE  # either 0 or 0|cv2.CASCADE_SCALE_IMAGE
+    minSize = (5, 5)  # range is from (0,0) to ..
     features = cascade.detectMultiScale(
-        ROI, 1.15, 3, 0 | cv2.CASCADE_SCALE_IMAGE, size)
+        ROI,
+        scaleFactor,
+        minNeighbors,
+        flag,
+        minSize)
     for f in features:
         f[0] += location[0]
         f[1] += location[1]
         x, y, w, h = f[0], f[1], f[2], f[3]
 
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 200, 60), 2)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 255), 2)
 
     # Return a positive value if only one feature is detected, otherwise a negative value
     if len(features) == 1:
@@ -24,8 +32,16 @@ def detectSingularFeature(frame, location, ROI, cascade, size):
 
 
 def detectWink(frame, location, ROI, cascade):
+    scaleFactor = 1.15  # range is from 1 to ..
+    minNeighbors = 5  # range is from 0 to ..
+    flag = 0 | cv2.CASCADE_SCALE_IMAGE  # either 0 or 0|cv2.CASCADE_SCALE_IMAGE
+    minSize = (20, 20)  # range is from (0,0) to ..
     eyes = cascade.detectMultiScale(
-        ROI, 1.15, 3, 0 | cv2.CASCADE_SCALE_IMAGE, (20, 20))
+        ROI,
+        scaleFactor,
+        minNeighbors,
+        flag,
+        minSize)
     for e in eyes:
         e[0] += location[0]
         e[1] += location[1]
@@ -59,7 +75,8 @@ def folderDetect(frame, faceCascade, eyesCascade):
     detected = 0
     for f in faces:
         x, y, w, h = f[0], f[1], f[2], f[3]
-        faceROI = gray_frame[y:y + h, x:x + w]
+        # Only look at the upper portion of the face for eyes
+        faceROI = gray_frame[y:y + int(h / 1.75), x:x + w]
 
         # Get features for detection
         # I want to detect the presence of the left and rights eyes seperately
@@ -67,8 +84,8 @@ def folderDetect(frame, faceCascade, eyesCascade):
                                             + 'haarcascade_lefteye_2splits.xml')
         reyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades
                                             + 'haarcascade_righteye_2splits.xml')
-        leftEye = detectSingularFeature(frame, (x, y), faceROI, leyeCascade, (20, 20))
-        rightEye = detectSingularFeature(frame, (x, y), faceROI, reyeCascade, (20, 20))
+        leftEye = detectSingularFeature(frame, (x, y), faceROI, leyeCascade)
+        rightEye = detectSingularFeature(frame, (x, y), faceROI, reyeCascade)
         wink = detectWink(frame, (x, y), faceROI, eyesCascade)
 
         # Assign higher value when "wink" is detected and when leftEye != rightEye.
