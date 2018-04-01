@@ -103,7 +103,7 @@ def videoDetect(frame, faceCascade, eyesCascade, confidence):
 
     # possible frame pre-processing:
     # gray_frame = cv2.equalizeHist(gray_frame)
-    # gray_frame = cv2.medianBlur(gray_frame, 5)
+    gray_frame = cv2.medianBlur(gray_frame, 5)
 
     scaleFactor = 1.15  # range is from 1 to ..
     minNeighbors = 1  # range is from 0 to ..
@@ -127,13 +127,14 @@ def videoDetect(frame, faceCascade, eyesCascade, confidence):
                                             + 'haarcascade_lefteye_2splits.xml')
         reyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades
                                             + 'haarcascade_righteye_2splits.xml')
-        leftEye = detectSingularFeature(frame, (x, y), faceROI, leyeCascade, (20, 20))
-        rightEye = detectSingularFeature(frame, (x, y), faceROI, reyeCascade, (20, 20))
+        leftEye = detectSingularFeature(frame, (x, y), faceROI, leyeCascade)
+        rightEye = detectSingularFeature(frame, (x, y), faceROI, reyeCascade)
+        wink = detectWink(frame, (x, y), faceROI, eyesCascade)
 
         # Assign higher value when "wink" is detected and when leftEye != rightEye.
         # confidence will help smooth out detection across frames by increasing the value above the threshold when
         # previous frames contained a wink.
-        if (2 * abs(leftEye - rightEye) + confidence) >= 4:
+        if (wink + 2 * abs(leftEye - rightEye) + confidence) >= 4:
             detected += 1
             cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
         else:
@@ -163,7 +164,7 @@ def run_on_folder(cascade1, cascade2, cascade3, folder):
     return totalCount
 
 
-def runonVideo(cascade1, cascade2, cascade3):
+def runonVideo(cascade1, cascade3):
     videocapture = cv2.VideoCapture(0)
     if not videocapture.isOpened():
         print("Can't open default video camera!")
@@ -185,12 +186,11 @@ def runonVideo(cascade1, cascade2, cascade3):
         confidence += lCnt
         cv2.imshow(windowName, frame)
         # Decrease the confidence level so that it doesn't get stuck at a high value
-        # print(confidence, ':', lCnt)
-        if confidence > 5:
-            confidence = confidence - 4.0
+        if confidence > 6:
+            confidence = confidence - 3.5
         else:
-            confidence = confidence - 0.9
-        if confidence < 0:
+            confidence = confidence - 0.5
+        if confidence < -1:
             confidence = 0.0
         if cv2.waitKey(30) >= 0:
             showlive = False
@@ -219,4 +219,4 @@ if __name__ == "__main__":
         detections = run_on_folder(face_cascade, face2_cascade, eye_cascade, folderName)
         print("Total of ", detections, "detections")
     else:  # no arguments
-        runonVideo(face_cascade, face2_cascade, eye_cascade)
+        runonVideo(face_cascade, eye_cascade)
